@@ -1,0 +1,49 @@
+---
+import { marked } from 'marked';
+import BlogLayout from '../../layouts/BlogLayout.astro';
+
+export async function getStaticPaths() {
+  const response = await fetch(`${import.meta.env.STRAPI_URL}/api/blogs?populate=header,localizations`);
+
+  const { data } = await response.json();
+
+  const paths = data.map((post) => {
+    const localized = post.attributes.localizations.data.find((l) => l.attributes.locale === 'es');
+
+    return {
+      params: { slug: post.attributes.slug },
+      props: { post: post.attributes, otherSlug: localized.attributes.slug },
+    };
+  });
+
+  return paths;
+}
+
+const { post, otherSlug } = Astro.props as any;
+
+const headerImage = post.header?.data[0]?.attributes?.url;
+const publishDate = new Date(post.published).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<BlogLayout title={post.title} otherSlug={otherSlug}>
+  <article class="prose prose-lg max-w-2xl mx-auto py-24">
+    {
+      headerImage && (
+        <img
+          src={`${import.meta.env.STRAPI_URL}${headerImage}`}
+          alt={post.title}
+          class="mb-6 w-full h-auto rounded-lg"
+        />
+      )
+    }
+    <div>
+      <h1>{post.title}</h1>
+      <p class="text-gray-500">{publishDate}</p>
+    </div>
+    <div set:html={marked.parse(post.content)} />
+  </article>
+</BlogLayout>

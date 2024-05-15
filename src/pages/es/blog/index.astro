@@ -1,0 +1,42 @@
+---
+import BlogLayout from '../../../layouts/BlogLayout.astro';
+
+const response = await fetch(`${import.meta.env.STRAPI_URL}/api/blogs?populate=header,localizations`);
+const data = await response.json();
+const posts = data.data;
+---
+
+<BlogLayout title="Todas las Publicaciones">
+  <main class="container mx-auto mt-8 px-4">
+    <div class="space-y-6 max-w-lg mx-auto">
+      {
+        posts.map((post) => {
+          const localized = post.attributes.localizations.data.find((l) => l.attributes.locale === 'es');
+
+          const headerImageUrl = post.attributes.header?.data[0]?.attributes?.formats?.small?.url;
+
+          return (
+            <a
+              href={`/es/blog/${localized.attributes.slug}`}
+              class="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 max-w-md mx-auto"
+            >
+              {headerImageUrl && (
+                <img
+                  src={`${import.meta.env.STRAPI_URL}${headerImageUrl}`}
+                  alt="Article Header Image"
+                  class="w-full h-48 object-cover"
+                />
+              )}
+              <div class="p-4">
+                <h2 class="text-xl font-bold mb-2">{localized.attributes.title}</h2>
+                <p class="text-gray-600 text-sm">
+                  Publicado el: {new Date(localized.attributes.publishedAt).toLocaleDateString()}
+                </p>
+              </div>
+            </a>
+          );
+        })
+      }
+    </div>
+  </main>
+</BlogLayout>

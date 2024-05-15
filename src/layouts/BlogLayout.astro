@@ -1,0 +1,35 @@
+---
+import Layout from './Layout.astro';
+
+const { title, otherSlug } = Astro.props;
+const currentLocale = Astro.currentLocale || 'en';
+
+const getSwitchUrl = () => {
+  if (!otherSlug) {
+    return currentLocale === 'es' ? '/blog' : '/es/blog';
+  }
+
+  if (currentLocale === 'en') {
+    return `/es/blog/${otherSlug}`;
+  }
+
+  return `/blog/${otherSlug}`;
+};
+
+const switchUrl = getSwitchUrl();
+---
+
+<Layout title={title}>
+  <header class="bg-blue-600 text-white text-center py-4">
+    <h1 class="text-3xl font-bold">
+      <a href="/blog" class="text-white"> Astro Blog </a>
+    </h1>
+    <nav class="mt-2">
+      <a href={switchUrl} class="text-white underline">
+        {currentLocale === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+      </a>
+    </nav>
+  </header>
+
+  <slot />
+</Layout>
